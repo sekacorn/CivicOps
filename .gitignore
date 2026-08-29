@@ -1,0 +1,9 @@
+target/
+civicops-web/node_modules/
+civicops-web/dist/
+.env
+.idea/
+*.iml
+.classpath
+.project
+.settings/

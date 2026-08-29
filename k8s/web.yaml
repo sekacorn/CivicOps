@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: civicops-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: civicops-web }
+  template:
+    metadata:
+      labels: { app: civicops-web }
+    spec:
+      containers:
+        - name: web
+          image: civicops-web:latest
+          ports: [{ containerPort: 80 }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: civicops-web }
+spec:
+  selector: { app: civicops-web }
+  ports: [{ port: 80, targetPort: 80 }]

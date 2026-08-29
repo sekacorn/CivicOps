@@ -1,0 +1,39 @@
+name: civicops
+services:
+  civicops-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: civicops
+      POSTGRES_USER: civicops
+      POSTGRES_PASSWORD: ${CIVICOPS_DATABASE_PASSWORD:-civicops}
+    ports:
+      - "5432:5432"
+    volumes:
+      - civicops-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civicops -d civicops"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  civicops-api:
+    build: .
+    environment:
+      CIVICOPS_DATABASE_URL: jdbc:postgresql://civicops-db:5432/civicops
+      CIVICOPS_DATABASE_USERNAME: civicops
+      CIVICOPS_DATABASE_PASSWORD: ${CIVICOPS_DATABASE_PASSWORD:-civicops}
+      CIVICOPS_JWT_SECRET: ${CIVICOPS_JWT_SECRET:?CIVICOPS_JWT_SECRET is required}
+      CIVICOPS_ACCESS_TOKEN_TTL: ${CIVICOPS_ACCESS_TOKEN_TTL:-PT15M}
+      CIVICOPS_REFRESH_TOKEN_TTL: ${CIVICOPS_REFRESH_TOKEN_TTL:-P30D}
+    ports:
+      - "8080:8080"
+    depends_on:
+      civicops-db:
+        condition: service_healthy
+  civicops-web:
+    build: ./civicops-web
+    ports:
+      - "4200:80"
+    depends_on:
+      - civicops-api
+volumes:
+  civicops-postgres:

@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: { name: civicops }
+spec:
+  rules:
+    - host: civicops.local
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend: { service: { name: civicops-api, port: { number: 8080 } } }
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: civicops-web, port: { number: 80 } } }

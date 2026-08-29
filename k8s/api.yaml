@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: civicops-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: civicops-api }
+  template:
+    metadata:
+      labels: { app: civicops-api }
+    spec:
+      containers:
+        - name: api
+          image: civicops-api:latest
+          ports: [{ containerPort: 8080 }]
+          envFrom:
+            - configMapRef: { name: civicops-api-config }
+            - secretRef: { name: civicops-api-secrets }
+          readinessProbe: { httpGet: { path: /actuator/health/readiness, port: 8080 } }
+          livenessProbe: { httpGet: { path: /actuator/health/liveness, port: 8080 } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: civicops-api }
+spec:
+  selector: { app: civicops-api }
+  ports: [{ port: 8080, targetPort: 8080 }]
