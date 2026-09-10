@@ -3,6 +3,10 @@ package org.civicops.shared.web;
 import java.time.Instant;
 import java.util.Map;
 
-public record ApiError(Instant timestamp, int status, String code, String message,
-                       Map<String, String> fieldErrors) {
-}
+public record ApiError(
+    Instant timestamp,
+    int status,
+    String code,
+    String message,
+    String path,
+    Map<String, String> fieldErrors) {}

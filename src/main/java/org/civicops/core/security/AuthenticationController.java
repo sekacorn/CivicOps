@@ -17,34 +17,35 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthenticationController {
-    private final AuthenticationService authentication;
-    private final CurrentUserProvider currentUser;
-    private final UserService users;
+  private final AuthenticationService authentication;
+  private final CurrentUserProvider currentUser;
+  private final UserService users;
 
-    public AuthenticationController(AuthenticationService authentication, CurrentUserProvider currentUser, UserService users) {
-        this.authentication = authentication;
-        this.currentUser = currentUser;
-        this.users = users;
-    }
+  public AuthenticationController(
+      AuthenticationService authentication, CurrentUserProvider currentUser, UserService users) {
+    this.authentication = authentication;
+    this.currentUser = currentUser;
+    this.users = users;
+  }
 
-    @PostMapping("/login")
-    public TokenResponse login(@Valid @RequestBody LoginRequest request) {
-        return authentication.login(request);
-    }
+  @PostMapping("/login")
+  public TokenResponse login(@Valid @RequestBody LoginRequest request) {
+    return authentication.login(request);
+  }
 
-    @PostMapping("/refresh")
-    public TokenResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        return authentication.refresh(request.refreshToken());
-    }
+  @PostMapping("/refresh")
+  public TokenResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
+    return authentication.refresh(request.refreshToken());
+  }
 
-    @PostMapping("/logout")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(@Valid @RequestBody RefreshTokenRequest request) {
-        authentication.logout(request.refreshToken());
-    }
+  @PostMapping("/logout")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void logout(@Valid @RequestBody RefreshTokenRequest request) {
+    authentication.logout(request.refreshToken());
+  }
 
-    @GetMapping("/me")
-    public UserResponse me() {
-        return users.get(currentUser.currentUserId());
-    }
+  @GetMapping("/me")
+  public UserResponse me() {
+    return users.get(currentUser.currentUserId());
+  }
 }

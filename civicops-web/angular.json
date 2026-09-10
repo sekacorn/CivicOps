@@ -1,1 +1,50 @@
-{"$schema":"./node_modules/@angular/cli/lib/config/schema.json","version":1,"projects":{"civicops-web":{"projectType":"application","root":"","sourceRoot":"src","prefix":"cop","architect":{"build":{"builder":"@angular-devkit/build-angular:application","options":{"outputPath":"dist/civicops-web","index":"src/index.html","browser":"src/main.ts","tsConfig":"tsconfig.app.json","assets":[{"glob":"**/*","input":"public"}],"styles":["src/styles.css"]},"configurations":{"production":{"outputHashing":"all"}}},"serve":{"builder":"@angular-devkit/build-angular:dev-server","configurations":{"production":{"buildTarget":"civicops-web:build:production"},"development":{"buildTarget":"civicops-web:build"}},"defaultConfiguration":"development"}}}},"cli":{"analytics":false}}
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "projects": {
+    "civicops-web": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "cop",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/civicops-web",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": ["src/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "outputHashing": "all"
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "civicops-web:build:production"
+            },
+            "development": {
+              "buildTarget": "civicops-web:build"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": false
+  }
+}

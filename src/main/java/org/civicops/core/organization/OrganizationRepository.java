@@ -1,7 +1,6 @@
 package org.civicops.core.organization;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface OrganizationRepository extends JpaRepository<Organization, UUID> {
-}
+public interface OrganizationRepository extends JpaRepository<Organization, UUID> {}

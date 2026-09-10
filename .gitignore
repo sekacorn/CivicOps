@@ -7,3 +7,8 @@ civicops-web/dist/
 .classpath
 .project
 .settings/
+*.log
+*.tmp
+*.pid
+hs_err_pid*
+.vscode/

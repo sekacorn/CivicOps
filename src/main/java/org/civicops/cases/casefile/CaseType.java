@@ -1,0 +1,12 @@
+package org.civicops.cases.casefile;
+
+public enum CaseType {
+  GENERAL_ASSISTANCE,
+  HOUSING,
+  FOOD_ASSISTANCE,
+  EMPLOYMENT,
+  EDUCATION,
+  FINANCIAL_ASSISTANCE,
+  COMMUNITY_SERVICES,
+  OTHER
+}

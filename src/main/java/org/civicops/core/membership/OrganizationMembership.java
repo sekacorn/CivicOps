@@ -9,46 +9,63 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.Instant;
 import org.civicops.core.organization.Organization;
 import org.civicops.core.user.User;
 import org.civicops.shared.domain.BaseEntity;
-import java.time.Instant;
 
 @Entity
-@Table(name = "organization_membership", uniqueConstraints =
-        @UniqueConstraint(name = "uk_membership_organization_user", columnNames = {"organization_id", "user_id"}))
+@Table(
+    name = "organization_membership",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "uk_membership_organization_user",
+            columnNames = {"organization_id", "user_id"}))
 public class OrganizationMembership extends BaseEntity {
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "organization_id", nullable = false)
+  private Organization organization;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
-    private Role role;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 50)
+  private Role role;
 
-    @Column(nullable = false)
-    private boolean active = true;
+  @Column(nullable = false)
+  private boolean active = true;
 
-    @Column(nullable = false, updatable = false)
-    private Instant joinedAt;
+  @Column(nullable = false, updatable = false)
+  private Instant joinedAt;
 
-    protected OrganizationMembership() {
-    }
+  protected OrganizationMembership() {}
 
-    OrganizationMembership(Organization organization, User user, Role role, Instant joinedAt) {
-        this.organization = organization;
-        this.user = user;
-        this.role = role;
-        this.joinedAt = joinedAt;
-    }
+  OrganizationMembership(Organization organization, User user, Role role, Instant joinedAt) {
+    this.organization = organization;
+    this.user = user;
+    this.role = role;
+    this.joinedAt = joinedAt;
+  }
 
-    public Organization getOrganization() { return organization; }
-    public User getUser() { return user; }
-    public Role getRole() { return role; }
-    public boolean isActive() { return active; }
-    public Instant getJoinedAt() { return joinedAt; }
+  public Organization getOrganization() {
+    return organization;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public Role getRole() {
+    return role;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public Instant getJoinedAt() {
+    return joinedAt;
+  }
 }

@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: civicops
       POSTGRES_USER: civicops
-      POSTGRES_PASSWORD: ${CIVICOPS_DATABASE_PASSWORD:-civicops}
+      POSTGRES_PASSWORD: ${CIVICOPS_DATABASE_PASSWORD:?CIVICOPS_DATABASE_PASSWORD is required}
     ports:
       - "5432:5432"
     volumes:
@@ -20,7 +20,7 @@ services:
     environment:
       CIVICOPS_DATABASE_URL: jdbc:postgresql://civicops-db:5432/civicops
       CIVICOPS_DATABASE_USERNAME: civicops
-      CIVICOPS_DATABASE_PASSWORD: ${CIVICOPS_DATABASE_PASSWORD:-civicops}
+      CIVICOPS_DATABASE_PASSWORD: ${CIVICOPS_DATABASE_PASSWORD:?CIVICOPS_DATABASE_PASSWORD is required}
       CIVICOPS_JWT_SECRET: ${CIVICOPS_JWT_SECRET:?CIVICOPS_JWT_SECRET is required}
       CIVICOPS_ACCESS_TOKEN_TTL: ${CIVICOPS_ACCESS_TOKEN_TTL:-PT15M}
       CIVICOPS_REFRESH_TOKEN_TTL: ${CIVICOPS_REFRESH_TOKEN_TTL:-P30D}
@@ -29,6 +29,12 @@ services:
     depends_on:
       civicops-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
   civicops-web:
     build: ./civicops-web
     ports:

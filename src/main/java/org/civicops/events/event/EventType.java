@@ -1,0 +1,14 @@
+package org.civicops.events.event;
+
+public enum EventType {
+  COMMUNITY_OUTREACH,
+  FUNDRAISER,
+  VOLUNTEER_ACTIVITY,
+  TRAINING,
+  WORKSHOP,
+  FOOD_DISTRIBUTION,
+  BOARD_MEETING,
+  PUBLIC_MEETING,
+  SCHOLARSHIP_EVENT,
+  OTHER
+}

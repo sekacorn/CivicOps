@@ -4,7 +4,7 @@ spring:
   datasource:
     url: ${CIVICOPS_DATABASE_URL:jdbc:postgresql://localhost:5432/civicops}
     username: ${CIVICOPS_DATABASE_USERNAME:civicops}
-    password: ${CIVICOPS_DATABASE_PASSWORD:civicops}
+    password: ${CIVICOPS_DATABASE_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
@@ -27,6 +27,8 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 civicops:
+  grant-report:
+    narrative-provider: ${CIVICOPS_GRANT_REPORT_NARRATIVE_PROVIDER:deterministic}
   security:
     jwt:
       secret: ${CIVICOPS_JWT_SECRET:}
