@@ -1,6 +1,9 @@
 package org.civicops.core.security;
 
 import jakarta.validation.Valid;
+import java.util.List;
+import org.civicops.core.membership.OrganizationMembershipService;
+import org.civicops.core.membership.dto.MembershipResponse;
 import org.civicops.core.security.dto.LoginRequest;
 import org.civicops.core.security.dto.RefreshTokenRequest;
 import org.civicops.core.security.dto.TokenResponse;
@@ -20,12 +23,17 @@ public class AuthenticationController {
   private final AuthenticationService authentication;
   private final CurrentUserProvider currentUser;
   private final UserService users;
+  private final OrganizationMembershipService memberships;
 
   public AuthenticationController(
-      AuthenticationService authentication, CurrentUserProvider currentUser, UserService users) {
+      AuthenticationService authentication,
+      CurrentUserProvider currentUser,
+      UserService users,
+      OrganizationMembershipService memberships) {
     this.authentication = authentication;
     this.currentUser = currentUser;
     this.users = users;
+    this.memberships = memberships;
   }
 
   @PostMapping("/login")
@@ -47,5 +55,10 @@ public class AuthenticationController {
   @GetMapping("/me")
   public UserResponse me() {
     return users.get(currentUser.currentUserId());
+  }
+
+  @GetMapping("/me/memberships")
+  public List<MembershipResponse> myMemberships() {
+    return memberships.listActiveForUser(currentUser.currentUserId());
   }
 }

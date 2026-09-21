@@ -1,17 +1,9 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Component } from "@angular/core";
+import { RouterOutlet } from "@angular/router";
 
 @Component({
-  selector: 'cop-root',
-  imports: [RouterLink, RouterOutlet],
-  template: `
-    <header>
-      <a routerLink="/">CivicOps</a>
-      <span>Open-source operations platform for nonprofits and community organizations.</span>
-    </header>
-    <main>
-      <router-outlet />
-    </main>
-  `,
+  selector: "cop-root",
+  imports: [RouterOutlet],
+  template: `<router-outlet />`,
 })
 export class AppComponent {}

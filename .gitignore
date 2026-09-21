@@ -1,6 +1,7 @@
 target/
 civicops-web/node_modules/
 civicops-web/dist/
+civicops-web/.angular/
 .env
 .idea/
 *.iml
@@ -12,3 +13,5 @@ civicops-web/dist/
 *.pid
 hs_err_pid*
 .vscode/
+backups/
+backups/*.sql

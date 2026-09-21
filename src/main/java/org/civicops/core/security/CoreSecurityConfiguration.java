@@ -46,7 +46,12 @@ public class CoreSecurityConfiguration {
             requests ->
                 requests
                     .requestMatchers(
-                        "/api/v1/health", "/actuator/health", "/swagger-ui/**", "/api-docs/**")
+                        "/api/v1/health",
+                        "/actuator/health",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/api-docs/**",
+                        "/v3/api-docs/**")
                     .permitAll()
                     .requestMatchers(
                         HttpMethod.POST,

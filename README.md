@@ -49,6 +49,173 @@ Phases 6–12 add Event Management, Case Management, Equipment Checkout, Facilit
 
 Java 21, Spring Boot, Spring Data JPA, Spring Security, Bean Validation, PostgreSQL, Flyway, Maven, Angular, TypeScript, Docker, and Kubernetes.
 
+## Clone-and-run installation
+
+This section is the self-service path for a nonprofit or civic organization that wants to run CivicOps locally or on a small server with Docker Compose. It does not require any developer-local credentials.
+
+### Prerequisites
+
+- Git
+- Docker Desktop, or Docker Engine with the Docker Compose plugin
+- PowerShell, Bash, or another terminal that can run `docker compose`
+
+Java, Maven, and Node are only required when developing CivicOps source code. They are not required for the Docker Compose clone-and-run path.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/sekacorn/CivicOps.git
+cd CivicOps
+```
+
+If you are testing from a fork, use your fork URL instead.
+
+### 2. Create a local environment file
+
+Copy the placeholder file and replace the placeholder values with values unique to this installation:
+
+```bash
+cp .env.example .env
+```
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Generate a JWT signing secret and paste it into `CIVICOPS_JWT_SECRET` in `.env`.
+
+Bash:
+
+```bash
+openssl rand -base64 48
+```
+
+PowerShell:
+
+```powershell
+[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+```
+
+Set `CIVICOPS_DATABASE_PASSWORD` to a different strong random value. Do not commit `.env`; it is ignored by Git. The committed `.env.example` contains placeholders only.
+
+### 3. Start CivicOps
+
+```bash
+docker compose up --build -d
+```
+
+Wait for the services to become healthy:
+
+```bash
+docker compose ps
+```
+
+Open the application at:
+
+- Web application: `http://localhost:4200`
+- API health: `http://localhost:8080/actuator/health`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8080/api-docs`
+
+### 4. Create the initial administrator
+
+The first account is created through the public setup API. Replace the example email and password with your own values. The password must be at least 12 characters.
+
+Bash:
+
+```bash
+API=http://localhost:8080/api/v1
+ADMIN_EMAIL=admin@example.org
+ADMIN_PASSWORD='replace-with-a-strong-admin-password'
+
+curl -X POST "$API/users" \
+  -H 'Content-Type: application/json' \
+  -d "{\"firstName\":\"Initial\",\"lastName\":\"Administrator\",\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}"
+
+TOKEN_RESPONSE=$(curl -s -X POST "$API/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}")
+ACCESS_TOKEN=$(printf '%s' "$TOKEN_RESPONSE" | python -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
+
+curl -X POST "$API/organizations" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Example Civic Organization","organizationType":"NONPROFIT","country":"US"}'
+```
+
+PowerShell:
+
+```powershell
+$Api = 'http://localhost:8080/api/v1'
+$AdminEmail = 'admin@example.org'
+$AdminPassword = 'replace-with-a-strong-admin-password'
+
+Invoke-RestMethod -Method Post -Uri "$Api/users" -ContentType 'application/json' -Body (@{
+  firstName = 'Initial'
+  lastName = 'Administrator'
+  email = $AdminEmail
+  password = $AdminPassword
+} | ConvertTo-Json)
+
+$TokenResponse = Invoke-RestMethod -Method Post -Uri "$Api/auth/login" -ContentType 'application/json' -Body (@{
+  email = $AdminEmail
+  password = $AdminPassword
+} | ConvertTo-Json)
+
+Invoke-RestMethod -Method Post -Uri "$Api/organizations" -ContentType 'application/json' -Headers @{
+  Authorization = "Bearer $($TokenResponse.accessToken)"
+} -Body (@{
+  name = 'Example Civic Organization'
+  organizationType = 'NONPROFIT'
+  country = 'US'
+} | ConvertTo-Json)
+```
+
+Creating the organization automatically grants the creator the `ORG_ADMIN` membership for that organization.
+
+### 5. Log in and begin using CivicOps
+
+Go to `http://localhost:4200/login`, sign in with the administrator email and password, and open the dashboard. The organization selector should show the organization created above. From there, use the left navigation to begin using Grants, Volunteers, Events, Donations, Cases, Equipment, Facilities, Scholarships, Food Pantry, Board, and Grant Reporting.
+
+### 6. Stop, restart, and preserve data
+
+Stop the running containers without deleting data:
+
+```bash
+docker compose stop
+```
+
+Start them again:
+
+```bash
+docker compose up -d
+```
+
+The PostgreSQL data is stored in the named Docker volume `civicops-postgres`. Do not run `docker compose down -v` unless you intentionally want to delete the database volume.
+
+### 7. Back up PostgreSQL
+
+Create a timestamped backup:
+
+Bash:
+
+```bash
+mkdir -p backups
+docker compose exec -T civicops-db pg_dump -U civicops -d civicops > "backups/civicops-$(date +%Y%m%d-%H%M%S).sql"
+```
+
+PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force backups | Out-Null
+$Stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+docker compose exec -T civicops-db pg_dump -U civicops -d civicops | Out-File -Encoding utf8 "backups/civicops-$Stamp.sql"
+```
+
+Keep backups outside the repository or in a private, encrypted backup location. Backup files are local operational data and should not be committed.
+
 ## Local development
 
 Prerequisites: Java 21, Maven 3.9+, Node 22+, Docker Desktop.
@@ -75,6 +242,43 @@ Required and optional authentication variables:
 The application fails at startup when the signing secret is absent or too short. `.env.example` contains placeholders only and `.env` is ignored.
 
 Build and verify with `mvn clean test` and `mvn verify`. Run directly with `mvn spring-boot:run`, or build the release image with `docker compose up --build`. Flyway applies immutable migrations at startup and Hibernate validates, rather than creates, the schema. Collection endpoints return the stable `PageResponse` envelope (`content`, `page`, `size`, `totalElements`, `totalPages`, `first`, `last`). Errors use a consistent timestamp/status/code/message/path contract with optional validation field errors.
+
+### Angular frontend development
+
+The frontend uses Node 22 LTS, npm, Angular 21 standalone components, strict TypeScript, and Vitest. From `civicops-web`:
+
+```powershell
+npm ci
+npm start
+npm run lint
+npm test
+npm run build
+```
+
+The development server uses `proxy.conf.json` to forward `/api` to `http://localhost:8080`; application services use the environment-provided `/api/v1` base path and do not embed localhost URLs. Production output is written to `civicops-web/dist/civicops-web/browser`. The frontend container serves that directory through Nginx, falls back to `index.html` for Angular routes, and proxies `/api/` to `civicops-api:8080` for same-origin deployment.
+
+Login stores the backend-provided access and refresh tokens behind `TokenStorageService`. The HTTP interceptor adds Bearer credentials only to CivicOps API requests. Concurrent `401` responses share one refresh request so rotating refresh tokens cannot race; refresh failure clears the session and returns the user to `/login`. Startup validates persisted credentials through `/auth/me`, loads active organizations and current-user memberships, and rejects a stale selected organization.
+
+Phase 15 provides the authenticated application shell, organization switching, role-aware navigation, stable API error and pagination handling, a truthful grant dashboard, and the complete Grant workflow. Phase 16.1 adds organization-scoped Angular workflows for Grant Reporting, Volunteers, Events, and Donations. Phase 16.2 adds Cases, Equipment, and Facilities. Phase 16.3 adds Scholarships, Food Pantry, and Board Management. These screens preserve backend lifecycle commands, privacy-safe summaries, backend-authoritative capacity, financial, inventory, governance, Case, and utilization reporting, immutable historical records, and Facility/Pantry timezone semantics. See [frontend architecture](docs/FRONTEND_ARCHITECTURE.md).
+
+Frontend feature routes use the selected organization ID:
+
+- `/organizations/:organizationId/grants` and `/grant-reporting`
+- `/organizations/:organizationId/volunteers`
+- `/organizations/:organizationId/events`
+- `/organizations/:organizationId/donations`
+- `/organizations/:organizationId/cases`, with Case and Client detail routes
+- `/organizations/:organizationId/equipment`, with Asset detail routes
+- `/organizations/:organizationId/facilities`, with Facility and Reservation detail routes
+- `/organizations/:organizationId/scholarships`, with Program, Application, Review, and Award detail routes
+- `/organizations/:organizationId/food-pantry`, with Pantry, Household, Inventory Lot, and Distribution detail routes
+- `/organizations/:organizationId/board`, with Meeting, Member, and Motion detail routes
+
+`GRANT_MANAGER`, `VOLUNTEER_COORDINATOR`, `EVENT_COORDINATOR`, `DONATION_MANAGER`, `CASE_MANAGER`, `EQUIPMENT_MANAGER`, `FACILITY_MANAGER`, `SCHOLARSHIP_MANAGER`, `FOOD_PANTRY_MANAGER`, and `BOARD_MANAGER` receive their backend-authorized module management actions. `SCHOLARSHIP_REVIEWER` receives assigned-review workflow, `BOARD_MEMBER` receives self-attendance and own-vote workflow, and `CASE_WORKER` sees only assigned Cases. `PROGRAM_MANAGER` gets PII-free reporting and read views where authorized by the backend; `VIEWER` receives permitted inventory, Facility, Scholarship, and other safe read/report views. `ORG_ADMIN` receives all implemented navigation. A shared accessible confirmation dialog protects final report, terminal lifecycle, donation reversal, Case closure/cancellation, lost/retired Asset, and other irreversible actions. Frontend visibility is convenience only; Spring Security remains authoritative.
+
+Case screens keep Client collection data separate from authorized Client detail, support explicit assignment, append-only notes, task completion/cancellation, preserved service records, lifecycle commands, and aggregate reporting. Equipment screens support category and Asset inventory, borrower-aware checkout for authorized managers, check-in condition outcomes, maintenance, loss, retirement, and server-calculated reports without exposing borrower history to read-only roles. Facility screens support spaces, weekly hours, blackouts, availability checks, reservations and approval workflows. Reservation inputs are interpreted in the selected Facility's IANA timezone; the backend remains authoritative for operating-hours and conflict validation. Reservation-to-Event links are navigational only.
+
+Scholarship screens support program lifecycle, applicant/application workflows, reviewer queues, document metadata, selection, awards, and reports while keeping applicant contact and private application data out of safe summaries and reviewer-safe pages. Food Pantry screens support locations, catalog items, receipts, inventory lots, ledger adjustments, households, distributions, and reports while keeping household detail off inventory-safe read pages. Board screens support member directories, meetings, attendance/quorum, agenda, motions, own voting, minutes, resolutions, and governance reports while keeping contact details and private vote ledgers out of general views. Scholarship and pantry date-only values remain date strings; pantry expiration semantics follow the pantry's configured timezone and the backend remains authoritative for FEFO allocation.
 
 See [API modules](docs/API_MODULES.md), [architecture](docs/ARCHITECTURE.md), [security](docs/SECURITY.md), and [release history](CHANGELOG.md).
 
@@ -154,13 +358,14 @@ curl -X POST "$API/organizations/$ORGANIZATION_ID/volunteer-assignments/$ASSIGNM
 curl -X POST "$API/organizations/$ORGANIZATION_ID/volunteer-assignments/$ASSIGNMENT_ID/check-out" -H "Authorization: Bearer $ACCESS_TOKEN"
 
 # 11. Submit and 12. approve hours
+SERVICE_DATE=$(date +%F)
 curl -X POST "$API/organizations/$ORGANIZATION_ID/volunteer-hours" -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H 'Content-Type: application/json' -d "{\"volunteerId\":\"$VOLUNTEER_ID\",\"assignmentId\":\"$ASSIGNMENT_ID\",\"serviceDate\":\"2030-06-01\",\"hours\":4.00}"
+  -H 'Content-Type: application/json' -d "{\"volunteerId\":\"$VOLUNTEER_ID\",\"assignmentId\":\"$ASSIGNMENT_ID\",\"serviceDate\":\"$SERVICE_DATE\",\"hours\":4.00}"
 HOUR_ENTRY_ID='<hour entry id>'
 curl -X POST "$API/organizations/$ORGANIZATION_ID/volunteer-hours/$HOUR_ENTRY_ID/approve" -H "Authorization: Bearer $ACCESS_TOKEN"
 
 # 13. Retrieve reporting
-curl "$API/organizations/$ORGANIZATION_ID/volunteer-reports/summary?from=2030-06-01&to=2030-06-30" \
+curl "$API/organizations/$ORGANIZATION_ID/volunteer-reports/summary?from=$SERVICE_DATE&to=$SERVICE_DATE" \
   -H "Authorization: Bearer $ACCESS_TOKEN"
 ```
 

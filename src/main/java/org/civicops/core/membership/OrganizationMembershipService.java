@@ -62,4 +62,12 @@ public class OrganizationMembershipService {
         .map(MembershipResponse::from)
         .toList();
   }
+
+  @Transactional(readOnly = true)
+  public List<MembershipResponse> listActiveForUser(UUID userId) {
+    users.requireEntity(userId);
+    return memberships.findActiveOrganizationsForUser(userId).stream()
+        .map(MembershipResponse::from)
+        .toList();
+  }
 }

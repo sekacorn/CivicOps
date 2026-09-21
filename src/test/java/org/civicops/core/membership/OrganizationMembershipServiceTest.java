@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 import org.civicops.core.membership.dto.CreateMembershipRequest;
 import org.civicops.core.organization.Organization;
@@ -94,5 +96,15 @@ class OrganizationMembershipServiceTest {
             () -> service.create(organizationId, new CreateMembershipRequest(userId, Role.VIEWER)))
         .isInstanceOf(BusinessRuleException.class)
         .hasMessageContaining("active organization and user");
+  }
+
+  @Test
+  void listsOnlyActiveMembershipsForCurrentUserContext() {
+    when(memberships.findActiveOrganizationsForUser(userId)).thenReturn(List.of());
+
+    assertThat(service.listActiveForUser(userId)).isEmpty();
+
+    verify(users).requireEntity(userId);
+    verify(memberships).findActiveOrganizationsForUser(userId);
   }
 }
